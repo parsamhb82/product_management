@@ -33,3 +33,8 @@ class DiscountSerializer(serializers.ModelSerializer):
             discount.User.set(users)
         
         return discount
+    
+class ItemDiscountSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Discount
+        fields = '__all__'

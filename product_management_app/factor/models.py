@@ -2,19 +2,32 @@ from django.db import models
 from django.contrib.auth.models import User
 from person.models import NaturalPerson, LegalPerson
 from product.models import Product, Discount
+from django.utils import timezone
+
 
 class Factor(models.Model):
     code = models.CharField(max_length=16, unique=True)
-    NaturalPerson = models.ForeignKey(NaturalPerson, on_delete=models.CASCADE)
-    legal_person = models.ForeignKey(LegalPerson, on_delete=models.CASCADE)
+    natural_person = models.ForeignKey(NaturalPerson, on_delete=models.CASCADE, null=True, blank=True)
+    legal_person = models.ForeignKey(LegalPerson, on_delete=models.CASCADE, null=True, blank=True)
     discount = models.ForeignKey(Discount, on_delete=models.CASCADE, blank=True, null=True)
     total_price = models.DecimalField(max_digits=10, decimal_places=2)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     is_paid = models.BooleanField(default=False)
 
-    def __str__(self) -> str:
-        return self.code
+    @property
+    def factor_discount(self):
+        now =timezone.now()
+        if self.discount and self.discount.start <= now <= self.discount.end:
+            if self.discount.all_customers or self.discount.all_products:
+                return self.discount.discount
+            elif self.natural_person and self.discount.user.filter(id=self.natural_person.user.id).exists():
+                return self.discount.discount
+        return 0
+
+    def __str__(self):
+        return f"Factor {self.code}"
+    
 
 class FactorItem(models.Model):
     factor = models.ForeignKey(Factor, on_delete=models.CASCADE)
