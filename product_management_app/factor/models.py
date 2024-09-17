@@ -8,7 +8,6 @@ from django.utils import timezone
 class Factor(models.Model):
     code = models.CharField(max_length=16, unique=True)
     natural_person = models.ForeignKey(NaturalPerson, on_delete=models.CASCADE, null=True, blank=True)
-    legal_person = models.ForeignKey(LegalPerson, on_delete=models.CASCADE, null=True, blank=True)
     discount = models.ForeignKey(Discount, on_delete=models.CASCADE, blank=True, null=True)
     total_price = models.DecimalField(max_digits=10, decimal_places=2)
     created_at = models.DateTimeField(auto_now_add=True)
