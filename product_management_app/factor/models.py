@@ -5,6 +5,8 @@ from product.models import Product, Discount
 from django.utils import timezone
 
 
+
+
 class Factor(models.Model):
     code = models.CharField(max_length=16, unique=True)
     natural_person = models.ForeignKey(NaturalPerson, on_delete=models.CASCADE, null=True, blank=True)
@@ -13,6 +15,7 @@ class Factor(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     is_paid = models.BooleanField(default=False)
+    paid_price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     @property
     def factor_discount(self):
@@ -41,11 +44,17 @@ class FactorItem(models.Model):
         return f"{self.factor.code}, {self.product.name}, {self.quantity}"
 
 class Transaction(models.Model):
+    TYPE_STATUS = (
+        ("online", "online"),
+        ("inperson", "inperson"),
+    )
     code = models.CharField(max_length=16, unique=True)
     factor = models.ForeignKey(Factor, on_delete=models.CASCADE)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
+    type = models.CharField(max_length=10, choices=TYPE_STATUS)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
 
     def __str__(self) -> str:
         return self.code

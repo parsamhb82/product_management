@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'product',
     'factor',
     'manager',
+    'django_filters',
 ]
 
 MIDDLEWARE = [
