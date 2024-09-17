@@ -1,6 +1,8 @@
 from product.models import Discount
 from rest_framework import serializers
-from .models import Factor, FactorItem, Transaction
+
+from product.models import Discount, Product
+from .models import *
 class DiscountSerializer(serializers.ModelSerializer):
     class Meta:
         model = Discount
@@ -44,3 +46,33 @@ class TransactionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Transaction
         fields = ['factor', 'amount', 'type']
+
+class FactorSerializer(serializers.Serializer):
+    discount_code = serializers.CharField(max_length=9, required=False, allow_blank=True)
+    products = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all(), many=True)
+    quantities = serializers.ListField(
+        child=serializers.IntegerField(min_value=1), 
+        allow_empty=False
+    )
+
+    def validate(self, data):
+        products = data.get('products')
+        quantities = data.get('quantities')
+        if len(products) != len(quantities):
+            raise serializers.ValidationError("The number of products and quantities must match.")
+        return data
+
+class FactorItemSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FactorItem
+        fields = ['id', 'product', 'quantity', 'price', 'total_price', 'discount']
+
+class FactorViewSerilizer(serializers.ModelSerializer):
+    factor_items = FactorItemSerializer(many=True, source = 'factoritem_set')   
+
+    class Meta:
+        model = Factor
+        fields = ['code', 'natural_person', 'discount', 'total_price', 'created_at', 'updated_at', 'is_paid', 'factor_items']
+
+
+
