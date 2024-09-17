@@ -10,9 +10,13 @@ from django.shortcuts import get_object_or_404
 from product.models import Discount
 from .serializers import DiscountSerializer
 from rest_framework.generics import CreateAPIView
+from rest_framework.permissions import IsAuthenticated
+from .permission import IsSuperUser
+
 
 class CreteDiscountView(CreateAPIView):
     serializer_class = DiscountSerializer
+    permission_classes = [IsAuthenticated, IsSuperUser]
 
 class ApplyDiscountView(APIView):
 
