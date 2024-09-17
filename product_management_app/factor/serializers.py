@@ -41,7 +41,7 @@ class ItemDiscountSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class FactorSerializer(serializers.Serializer):
-    discount_code = serializers.CharField(max_length=9)
+    discount_code = serializers.CharField(max_length=9, required=False, allow_blank=True)
     products = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all(), many=True)
     quantities = serializers.ListField(
         child=serializers.IntegerField(min_value=1), 
