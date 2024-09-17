@@ -1,4 +1,4 @@
-from rest_framework.generics import ListCreateAPIView, RetrieveAPIView
+from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from .models import NaturalPerson, LegalPerson
 from .serializers import NaturalPersonSerializer, LegalPersonSerializer
 from rest_framework import filters
