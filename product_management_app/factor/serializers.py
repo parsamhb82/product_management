@@ -1,5 +1,6 @@
 from product.models import Discount
 from rest_framework import serializers
+from product.models import Discount, Product
 class DiscountSerializer(serializers.ModelSerializer):
     class Meta:
         model = Discount
@@ -38,3 +39,22 @@ class ItemDiscountSerializer(serializers.ModelSerializer):
     class Meta:
         model = Discount
         fields = '__all__'
+
+class FactorSerializer(serializers.Serializer):
+    discount_code = serializers.CharField(max_length=9)
+    products = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all(), many=True)
+    quantities = serializers.ListField(
+        child=serializers.IntegerField(min_value=1), 
+        allow_empty=False
+    )
+
+    def validate(self, data):
+        products = data.get('products')
+        quantities = data.get('quantities')
+        if len(products) != len(quantities):
+            raise serializers.ValidationError("The number of products and quantities must match.")
+        return data
+
+
+
+
