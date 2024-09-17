@@ -7,7 +7,7 @@ class DiscountSerializer(serializers.ModelSerializer):
     
     def create(self, validated_data):
         products = validated_data.pop('product', None)
-        users = validated_data.pop('User', None)
+        users = validated_data.pop('user', None)
         
         # Handle all products case
         if not products:

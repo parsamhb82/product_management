@@ -18,7 +18,7 @@ class Product(models.Model):
 
 class Discount(models.Model):
     product = models.ManyToManyField(Product, blank=True)
-    User = models.ManyToManyField(User, blank=True)
+    user = models.ManyToManyField(User, blank=True)
     all_products = models.BooleanField(default=False)
     all_customers = models.BooleanField(default=False)
     code = models.CharField(max_length=9, unique=True)
