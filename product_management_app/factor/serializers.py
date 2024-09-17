@@ -1,5 +1,6 @@
 from product.models import Discount
 from rest_framework import serializers
+from .models import Factor, FactorItem, Transaction
 class DiscountSerializer(serializers.ModelSerializer):
     class Meta:
         model = Discount
@@ -38,3 +39,8 @@ class ItemDiscountSerializer(serializers.ModelSerializer):
     class Meta:
         model = Discount
         fields = '__all__'
+
+class TransactionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Transaction
+        fields = ['factor', 'amount', 'type']
