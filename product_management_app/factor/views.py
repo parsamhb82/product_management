@@ -1,20 +1,30 @@
-from .models import Factor, FactorItem
+from .models import Factor, FactorItem, Transaction
 from .serializers import DiscountSerializer
-from rest_framework.views import APIView
-
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .models import Factor
 from django.shortcuts import get_object_or_404
 from product.models import Discount
 from .serializers import DiscountSerializer
 from rest_framework.generics import CreateAPIView
 from rest_framework.permissions import IsAuthenticated
 from .permission import IsSuperUser
+import uuid
+
+def generate_unique_transaction_code():
+    while True:
+        code = str(uuid.uuid4())[:16]  # Generate a random 16-character string
+        if not Transaction.objects.filter(code=code).exists():
+            return code
+
+def generate_unique_factor_code():
+    while True:
+        code = str(uuid.uuid4())[:16]  # Generate a random 16-character string
+        if not Factor.objects.filter(code=code).exists():
+            return code
 
 
-class CreteDiscountView(CreateAPIView):
+class CreateDiscountView(CreateAPIView):
     serializer_class = DiscountSerializer
     permission_classes = [IsAuthenticated, IsSuperUser]
 
