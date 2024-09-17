@@ -235,7 +235,20 @@ class CreatFactor(APIView):
                     return  Response({'message': 'The factor has been successfully created.'}, status=status.HTTP_201_CREATED)
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-                
+
+from rest_framework.generics import ListAPIView
+from .serializers import FactorViewSerilizer
+class FactorView(ListAPIView):
+    permission_classes = [IsAuthenticated, IsSuperUser]
+
+    queryset = Factor.objects.all()
+    serializer_class = FactorViewSerilizer
+
+from rest_framework.generics import RetrieveAPIView
+class FactorRetrieveView(RetrieveAPIView):
+    permission_classes = [IsAuthenticated, IsSuperUser]
+    queryset = Factor.objects.all()
+    serializer_class = FactorViewSerilizer
 
 
 
