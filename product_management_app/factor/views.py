@@ -49,6 +49,7 @@ class ApplyDiscountView(APIView):
         
 from .serializers import FactorSerializer
 from product.models import Product
+from django.utils import timezone
 class CreatFactor(APIView):
     permission_classes = [IsAuthenticated]
     serializer_class = FactorSerializer
@@ -68,49 +69,56 @@ class CreatFactor(APIView):
                         if products[i].quantity < quantities[i]:
                             return Response({'error': 'The quantity of the product is not enough.'}, status=status.HTTP_400_BAD_REQUEST)
                         bill += products[i].price * quantities[i]
-                factor = Factor.objects.create(
-                    user=request.user,
-                    code=generate_unique_factor_code(),
-                    total_price=bill,
-                )
-                for i in range(len(products)):
-                    FactorItem.objects.create(
-                        factor=factor,
-                        product=products[i],
-                        quantity=quantities[i],
-                        price = products[i].price,
-                        total_price=products[i].price * quantities[i])
-                    products[i].quantity -= quantities[i]
-                    products[i].save()
-                return Response({'message': 'The factor has been successfully created.'}, status=status.HTTP_201_CREATED)
+                        bill = bill * 1.1 # 10% tax
                 
-            elif discount_code != '':
-                discount = get_object_or_404(Discount, code=discount_code)
-
-                if discount.all_products and discount.all_customers:
-                    bill = 0
-                    for i in range(len(products)):
-                        if products[i].quantity < quantities[i]:
-                            return Response({'error': 'The quantity of the product is not enough.'}, status=status.HTTP_400_BAD_REQUEST)
-                        bill += products[i].price * quantities[i]
-                    bill = bill * (100 - discount.discount) / 100
                     factor = Factor.objects.create(
                         user=request.user,
                         code=generate_unique_factor_code(),
                         total_price=bill,
-                        discount=discount,
                     )
                     for i in range(len(products)):
                         FactorItem.objects.create(
                             factor=factor,
                             product=products[i],
                             quantity=quantities[i],
-                            price = (products[i].price) * (100 - discount.discount) / 100,
-                            total_price=(products[i].price * quantities[i]) * (100 - discount.discount) / 100,
-                            discount = discount)
+                            price = products[i].price,
+                            total_price=products[i].price * quantities[i])
                         products[i].quantity -= quantities[i]
                         products[i].save()
-                    return  Response({'message': 'The factor has been successfully created.'}, status=status.HTTP_201_CREATED)
+                    return Response({'message': 'The factor has been successfully created.'}, status=status.HTTP_201_CREATED)
+                
+                elif discount_code != '':
+                    discount = get_object_or_404(Discount, code=discount_code)
+                    time = timezone.now()
+                    if discount.end < time:
+                        return Response ({'error': 'The discount code has expired.'}, status=status.HTTP_400_BAD_REQUEST)
+                    
+
+                    if discount.all_products and discount.all_customers:
+                        bill = 0
+                        for i in range(len(products)):
+                            if products[i].quantity < quantities[i]:
+                                return Response({'error': 'The quantity of the product is not enough.'}, status=status.HTTP_400_BAD_REQUEST)
+                            bill += products[i].price * quantities[i]
+                        bill = bill * (100 - discount.discount) / 100
+                        bill = bill * 1.1 # 10% tax
+                        factor = Factor.objects.create(
+                            user=request.user,
+                            code=generate_unique_factor_code(),
+                            total_price=bill,
+                            discount=discount,
+                        )
+                        for i in range(len(products)):
+                            FactorItem.objects.create(
+                                factor=factor,
+                                product=products[i],
+                                quantity=quantities[i],
+                                price = (products[i].price) * (100 - discount.discount) / 100,
+                                total_price=(products[i].price * quantities[i]) * (100 - discount.discount) / 100,
+                                discount = discount)
+                            products[i].quantity -= quantities[i]
+                            products[i].save()
+                        return  Response({'message': 'The factor has been successfully created.'}, status=status.HTTP_201_CREATED)
                     
 
                 elif discount.all_products and not discount.all_customers:
@@ -122,6 +130,7 @@ class CreatFactor(APIView):
                             return Response({'error': 'The quantity of the product is not enough.'}, status=status.HTTP_400_BAD_REQUEST)
                         bill += products[i].price * quantities[i]
                     bill = bill * (100 - discount.discount) / 100
+                    bill = bill * 1.1 # 10% tax
                     factor = Factor.objects.create(
                         user=request.user,
                         code=generate_unique_factor_code(),
@@ -153,6 +162,7 @@ class CreatFactor(APIView):
                             bill += products[i].price * quantities[i]
                     if flag == 0:
                         return Response({'error': 'this discount is not usable for your peoducts'}, status=status.HTTP_400_BAD_REQUEST)
+                    bill = bill * 1.1 # 10% tax
                     factor = Factor.objects.create(
                         user=request.user,
                         code=generate_unique_factor_code(),
@@ -195,6 +205,7 @@ class CreatFactor(APIView):
                             bill += products[i].price * quantities[i]
                     if flag == 0:
                         return Response({'error': 'this discount is not usable for your peoducts'}, status=status.HTTP_400_BAD_REQUEST)
+                    bill = bill * 1.1 # 10% tax
                     factor = Factor.objects.create(
                         user=request.user,
                         code=generate_unique_factor_code(),
