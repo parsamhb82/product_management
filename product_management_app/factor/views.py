@@ -67,6 +67,16 @@ class TransactionView(APIView):
                     type=transaction_type
                 )
 
+                if factor.paid_price == factor.total_price:
+                    factor.is_paid = True
+                factor.save()
+
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            else:
+                return Response({'error': 'Amount exceeds the remaining price'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 class CreatFactor(APIView):
     permission_classes = [IsAuthenticated]
     serializer_class = FactorSerializer
@@ -288,15 +298,7 @@ class ApplyDiscountView(APIView):
         else:
             return Response({'error': 'The code cannot be used.'}, status=status.HTTP_400_BAD_REQUEST)
 
-                if factor.paid_price == factor.total_price:
-                    factor.is_paid = True
-                factor.save()
-
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-            else:
-                return Response({'error': 'Amount exceeds the remaining price'}, status=status.HTTP_400_BAD_REQUEST)
-        
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                
     
 class TransactionList(ListAPIView):
     queryset = Transaction.objects.all()
