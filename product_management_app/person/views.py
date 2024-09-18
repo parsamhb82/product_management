@@ -5,6 +5,13 @@ from rest_framework import filters
 from django_filters.rest_framework import DjangoFilterBackend
 from .permissions import IsNaturalUser, IsLegalUser
 from factor.permission import IsSuperUser
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+
+class Login(TokenObtainPairView):
+    pass
+
+class Refresh(TokenRefreshView):
+    pass
 class NaturalPersonListView(ListAPIView):
 
     permission_classes = [IsSuperUser]
