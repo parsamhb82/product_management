@@ -9,7 +9,7 @@ class Category(models.Model):
 class Product(models.Model):
     code = models.CharField(max_length=16)
     name = models.CharField(max_length=100)
-    description = models.TextField()
+    description = models.TextField(required=False)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     owner = models.ForeignKey(LegalPerson, on_delete=models.CASCADE)
