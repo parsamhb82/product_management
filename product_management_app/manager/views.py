@@ -1,89 +1,109 @@
 import csv
-from django.http import HttpResponse
-from django.shortcuts import render, redirect
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth.models import User
+from django.http import HttpResponse
 from .models import NaturalPerson, LegalPerson, Product, Factor
+from factor.permission import IsSuperUser
 
 
-def export_customers_csv(request):
-    response = HttpResponse(content_type="text/csv")
-    response["Content-Disposition"] = 'attachment; filename="customers.csv"'
+class ExportCustomersCSV(APIView):
+    permission_classes = [IsSuperUser]
 
-    writer = csv.writer(response)
+    def get(self, request):
+        response = HttpResponse(content_type="text/csv")
+        response["Content-Disposition"] = 'attachment; filename="customers.csv"'
 
-    writer.writerow(["Username", "National ID", "Wallet"])
-    natural_customers = NaturalPerson.objects.all()
-    for customer in natural_customers:
-        writer.writerow([customer.user.username, customer.national_id, customer.wallet])
+        writer = csv.writer(response)
+        writer.writerow(["Username", "National ID", "Wallet"])
 
-    writer.writerow(
-        ["Username", "Company Name", "Company Address", "Company ID", "Wallet"]
-    )
-    legal_customers = LegalPerson.objects.all()
-    for customer in legal_customers:
+        natural_customers = NaturalPerson.objects.all()
+        for customer in natural_customers:
+            writer.writerow(
+                [customer.user.username, customer.national_id, customer.wallet]
+            )
+
         writer.writerow(
-            [
-                customer.user.username,
-                customer.company_name,
-                customer.company_address,
-                customer.company_id,
-                customer.wallet,
-            ]
+            ["Username", "Company Name", "Company Address", "Company ID", "Wallet"]
+        )
+        legal_customers = LegalPerson.objects.all()
+        for customer in legal_customers:
+            writer.writerow(
+                [
+                    customer.user.username,
+                    customer.company_name,
+                    customer.company_address,
+                    customer.company_id,
+                    customer.wallet,
+                ]
+            )
+
+        return response
+
+
+class ExportProductsCSV(APIView):
+    permission_classes = [IsSuperUser]
+
+    def get(self, request):
+        response = HttpResponse(content_type="text/csv")
+        response["Content-Disposition"] = 'attachment; filename="products.csv"'
+
+        writer = csv.writer(response)
+        writer.writerow(
+            ["Code", "Name", "Description", "Price", "Category", "Owner", "Stock"]
         )
 
-    return response
+        products = Product.objects.all()
+        for product in products:
+            writer.writerow(
+                [
+                    product.code,
+                    product.name,
+                    product.description,
+                    product.price,
+                    product.category.name,
+                    product.owner.company_name,
+                    product.stock,
+                ]
+            )
+
+        return response
 
 
-def export_products_csv(request):
-    response = HttpResponse(content_type="text/csv")
-    response["Content-Disposition"] = 'attachment; filename="products.csv"'
+class ExportFactorsCSV(APIView):
+    permission_classes = [IsSuperUser]
 
-    writer = csv.writer(response)
-    writer.writerow(
-        ["Code", "Name", "Description", "Price", "Category", "Owner", "Stock"]
-    )
+    def get(self, request):
+        response = HttpResponse(content_type="text/csv")
+        response["Content-Disposition"] = 'attachment; filename="factors.csv"'
 
-    products = Product.objects.all()
-    for product in products:
-        writer.writerow(
-            [
-                product.code,
-                product.name,
-                product.description,
-                product.price,
-                product.category.name,
-                product.owner.company_name,
-                product.stock,
-            ]
-        )
+        writer = csv.writer(response)
+        writer.writerow(["Code", "Natural Person", "Total Price", "Created At", "Paid"])
 
-    return response
+        factors = Factor.objects.all()
+        for factor in factors:
+            writer.writerow(
+                [
+                    factor.code,
+                    (
+                        factor.natural_person.user.username
+                        if factor.natural_person
+                        else ""
+                    ),
+                    factor.total_price,
+                    factor.created_at,
+                    factor.is_paid,
+                ]
+            )
 
-
-def export_factors_csv(request):
-    response = HttpResponse(content_type="text/csv")
-    response["Content-Disposition"] = 'attachment; filename="factors.csv"'
-
-    writer = csv.writer(response)
-    writer.writerow(["Code", "Natural Person", "Total Price", "Created At", "Paid"])
-
-    factors = Factor.objects.all()
-    for factor in factors:
-        writer.writerow(
-            [
-                factor.code,
-                factor.natural_person.user.username if factor.natural_person else "",
-                factor.total_price,
-                factor.created_at,
-                factor.is_paid,
-            ]
-        )
-
-    return response
+        return response
 
 
-def import_customers_csv(request):
-    if request.method == "POST":
+class ImportCustomersCSV(APIView):
+    permission_classes = [IsSuperUser]
+
+    def post(self, request):
         csv_file = request.FILES["file"]
         decoded_file = csv_file.read().decode("utf-8").splitlines()
         reader = csv.reader(decoded_file)
@@ -104,13 +124,13 @@ def import_customers_csv(request):
                 },
             )
 
-        return redirect("some_success_url")
-
-    return render(request, "import_csv.html")
+        return Response({"status": "success"}, status=200)
 
 
-def import_products_csv(request):
-    if request.method == "POST":
+class ImportProductsCSV(APIView):
+    permission_classes = [IsSuperUser]
+
+    def post(self, request):
         csv_file = request.FILES["file"]
         decoded_file = csv_file.read().decode("utf-8").splitlines()
         reader = csv.reader(decoded_file)
@@ -133,13 +153,13 @@ def import_products_csv(request):
                 },
             )
 
-        return redirect("some_success_url")
-
-    return render(request, "import_csv.html")
+        return Response({"status": "success"}, status=200)
 
 
-def import_factors_csv(request):
-    if request.method == "POST":
+class ImportFactorsCSV(APIView):
+    permission_classes = [IsSuperUser]
+
+    def post(self, request):
         csv_file = request.FILES["file"]
         decoded_file = csv_file.read().decode("utf-8").splitlines()
         reader = csv.reader(decoded_file)
@@ -158,6 +178,4 @@ def import_factors_csv(request):
                 },
             )
 
-        return redirect("some_success_url")
-
-    return render(request, "import_csv.html")
+        return Response({"status": "success"}, status=200)
